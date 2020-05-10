@@ -763,6 +763,54 @@ mod tests {
     }
 
     #[test]
+    fn test_rotate_half_pi_square_about_center() {
+        let image = gray_image!(
+            00, 01, 02, 03;
+            10, 11, 12, 14;
+            21, 22, 23, 25;
+            31, 32, 33, 34);
+
+        let expected = gray_image!(
+            31, 21, 10, 00;
+            32, 22, 11, 01;
+            33, 23, 12, 02;
+            34, 25, 14, 03);
+
+        let rotated = rotate_about_center(
+            &image,
+            std::f32::consts::PI / 2f32,
+            Interpolation::Nearest,
+            Luma([99u8]),
+        );
+        assert_pixels_eq!(rotated, expected);
+    }
+
+
+    #[test]
+    fn test_rotate_half_pi_zero_square_about_center() {
+        let image = gray_image!(
+            00, 00, 00, 00;
+            00, 00, 00, 00;
+            00, 00, 00, 00;
+            00, 00, 00, 00);
+
+        let expected = gray_image!(
+            00, 00, 00, 00;
+            00, 00, 00, 00;
+            00, 00, 00, 00;
+            00, 00, 00, 00);
+
+        let rotated = rotate_about_center(
+            &image,
+            std::f32::consts::PI / 2f32,
+            Interpolation::Nearest,
+            Luma([99u8]),
+        );
+        assert_pixels_eq!(rotated, expected);
+    }
+
+
+    #[test]
     fn text_rotate_nearest_quarter_turn_clockwise() {
         let image = gray_image!(
             00, 01, 02;

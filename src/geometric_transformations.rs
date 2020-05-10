@@ -317,7 +317,7 @@ where
 {
     let (cx, cy) = center;
     let projection =
-        Projection::translate(cx, cy) * Projection::rotate(theta) * Projection::translate(-cx, -cy);
+        Projection::translate(cx -0.5, cy - 0.5) * Projection::rotate(theta) * Projection::translate(-cx + 0.5, -cy + 0.5);
     warp(image, &projection, interpolation, default)
 }
 

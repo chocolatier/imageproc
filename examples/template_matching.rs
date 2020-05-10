@@ -23,14 +23,16 @@ struct TemplateMatchingArgs {
 impl TemplateMatchingArgs {
     fn parse(args: Vec<String>) -> TemplateMatchingArgs {
         if args.len() != 7 {
-            panic!(r#"
+            panic!(
+                r#"
 Usage:
 
      cargo run --example template_matching input_path output_dir template_x template_y template_w template_h
 
 Loads the image at input_path and extracts a region with the given location and size to use as the matching
 template. Calls match_template on the input image and this template, and saves the results to output_dir.
-"#);
+"#
+            );
         }
 
         let input_path = PathBuf::from(&args[1]);
@@ -101,7 +103,9 @@ fn run_match_template(
 
     // Pad the result to the same size as the input image, to make them easier to compare
     let mut result_padded = GrayImage::new(image.width(), image.height());
-    result_padded.copy_from(&result_scaled, args.template_w / 2, args.template_h / 2);
+    result_padded
+        .copy_from(&result_scaled, args.template_w / 2, args.template_h / 2)
+        .unwrap();
 
     // Show location the template was extracted from
     let roi = Rect::at(args.template_x as i32, args.template_y as i32)

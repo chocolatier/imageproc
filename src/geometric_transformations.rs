@@ -223,10 +223,10 @@ impl Projection {
     }
 }
 
-impl<'a, 'b> Mul<&'b Projection> for &'a Projection {
+impl Mul<Projection> for Projection {
     type Output = Projection;
 
-    fn mul(self, rhs: &Projection) -> Projection {
+    fn mul(self, rhs: Projection) -> Projection {
         use TransformationClass as TC;
         let t = mul3x3(self.transform, rhs.transform);
         let i = mul3x3(rhs.inverse, self.inverse);
@@ -247,20 +247,11 @@ impl<'a, 'b> Mul<&'b Projection> for &'a Projection {
     }
 }
 
-impl Mul<Projection> for Projection {
+impl<'a, 'b> Mul<&'b Projection> for &'a Projection {
     type Output = Projection;
 
-    fn mul(self, rhs: Projection) -> Projection {
-        &self * &rhs
-    }
-}
-
-impl<'a, 'b> Mul<&'b (f32, f32)> for &'a Projection {
-    type Output = (f32, f32);
-
-    fn mul(self, rhs: &(f32, f32)) -> (f32, f32) {
-        let (x, y) = *rhs;
-        self.map_projective(x, y)
+    fn mul(self, rhs: &Projection) -> Projection {
+        *self * *rhs
     }
 }
 
@@ -268,7 +259,20 @@ impl Mul<(f32, f32)> for Projection {
     type Output = (f32, f32);
 
     fn mul(self, rhs: (f32, f32)) -> (f32, f32) {
-        &self * &rhs
+        let (x, y) = rhs;
+        match self.class {
+            TransformationClass::Translation => self.map_translation(x, y),
+            TransformationClass::Affine => self.map_affine(x, y),
+            TransformationClass::Projection => self.map_projective(x, y),
+        }
+    }
+}
+
+impl<'a, 'b> Mul<&'b (f32, f32)> for &'a Projection {
+    type Output = (f32, f32);
+
+    fn mul(self, rhs: &(f32, f32)) -> (f32, f32) {
+        *self * *rhs
     }
 }
 
@@ -441,9 +445,9 @@ pub fn warp_into<P>(
     let nn = |x, y| interpolate_nearest(image, x, y, default);
     let bl = |x, y| interpolate_bilinear(image, x, y, default);
     let bc = |x, y| interpolate_bicubic(image, x, y, default);
-    let wt = |x, y| projection.map_projective(x, y);
+    let wp = |x, y| projection.map_projective(x, y);
     let wa = |x, y| projection.map_affine(x, y);
-    let wp = |x, y| projection.map_translation(x, y);
+    let wt = |x, y| projection.map_translation(x, y);
     use Interpolation as I;
     use TransformationClass as TC;
 
@@ -575,7 +579,7 @@ fn normalize(mx: [f32; 9]) -> [f32; 9] {
         mx[5] / mx[8],
         mx[6] / mx[8],
         mx[7] / mx[8],
-        mx[8] / mx[8],
+        1.0,
     ]
 }
 
